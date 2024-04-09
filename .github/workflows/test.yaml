@@ -1,0 +1,28 @@
+name: "Test"
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  tests:
+    strategy:
+      matrix:
+        targetdir: [ "okay", "maybe okay"]
+    runs-on: "ubuntu-latest"
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: ${{ matrix.targetdir }}
+
+    - uses: cachix/install-nix-action@v26
+    - uses: cachix/cachix-action@v14
+      with:
+        name: devenv
+    - name: Install devenv.sh
+      run: nix profile install nixpkgs#devenv
+
+    - name: Build the devenv shell and run any pre-commit hooks
+      working-directory: ${{ matrix.targetdir }}
+      run: devenv test
